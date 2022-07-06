@@ -2,7 +2,7 @@
 use Mojolicious::Lite -signatures;
 use Mojo::Util 'secure_compare';
 
-get '/login' => sub ($c) {
+get '/spa-auth/login' => sub ($c) {
 
   # Check for username "Pepe" and password "jose"
   return $c->render(template => 'index')
