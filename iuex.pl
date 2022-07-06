@@ -38,11 +38,11 @@ __DATA__
         <label for="password">Contraseña</label>
         <input type="password" name="password" id="password">
         <input type="submit" value="Enviar">
-        %= hidden_field name => 'client_id', value => $c->stash('client_id');
-        %= hidden_field name => 'redirect_uri', value => $c->stash('redirect_uri');
-        %= hidden_field name => 'response_type', value => $c->stash('response_type');
-        %= hidden_field name => 'scope', value => $c->stash('scope');
-        %= hidden_field name => 'state', value => $c->stash('state'); 
+        %= hidden_field client_id => $c->stash('client_id');
+        %= hidden_field redirect_uri => $c->stash('redirect_uri');
+        %= hidden_field response_type => $c->stash('response_type');
+        %= hidden_field scope => $c->stash('scope');
+        %= hidden_field state => $c->stash('state'); 
     % end
 </body>
 </html>
