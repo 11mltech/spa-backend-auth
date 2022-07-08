@@ -5,6 +5,7 @@ use Mojo::Util 'secure_compare';
 get '/spa-auth/login' => sub ($c) {
 
   # Check for username "Pepe" and password "jose"
+  # $c->log->debug("params: " . $c->dumper($c->req->params));
   return $c->render(template => 'index')
    if secure_compare $c->req->url->to_abs->userinfo, 'alexa-id:alexa-secret'; 
   # Require authentication
@@ -14,9 +15,27 @@ get '/spa-auth/login' => sub ($c) {
 };
 
 post '/spa-auth/user-auth' => sub ($c) {
-    
+  $c->log->debug("params: " . $c->dumper($c->req->params));
+  if ($c->param('username') ne 'pepe' || $c->param('password') ne 'jose') {
+   return $c->render(status => 404, text => 'Forbidden');
+  };
+  my $url = Mojo::URL->new($c->param('redirect_uri'));
+  $url->query(state => $c->param('state'), code => '12345678');
+  $c->redirect_to($url);
 } => 'uauth';
 
+post '/spa-auth/token' => sub ($c) {
+  $c->log->debug("params for token: " . $c->dumper($c->req->params));
+  if ($c->param('code') ne '12345678') {
+    return $c->render(status => 404, text => 'Forbidden');
+  }
+  $c->render(json => {
+	access_token => 'este-es-nuestro.access.token',
+	token_type => 'bearer',
+	expires_in => 3600 * 24,
+	refresh_token => 'el-token.de.refresco'
+	  });
+};
 
 app->start;
 __DATA__
@@ -32,17 +51,17 @@ __DATA__
     </head>
 <body>
     <h1> Formulario de autenticacion</h1>
-    %= form_for uauth => (method => 'POST') => begin
+    %= form_for $c->url_for('uauth')->to_abs => (method => 'POST') => begin
         <label for="username">Usuario</label>
         <input type="text" name="username" id="username">
         <label for="password">Contraseña</label>
         <input type="password" name="password" id="password">
         <input type="submit" value="Enviar">
-        %= hidden_field client_id => $c->stash('client_id');
-        %= hidden_field redirect_uri => $c->stash('redirect_uri');
-        %= hidden_field response_type => $c->stash('response_type');
-        %= hidden_field scope => $c->stash('scope');
-        %= hidden_field state => $c->stash('state'); 
+        %= hidden_field client_id => $c->param('client_id');
+        %= hidden_field redirect_uri => $c->param('redirect_uri');
+        %= hidden_field response_type => $c->param('response_type');
+        %= hidden_field scope => $c->param('scope');
+        %= hidden_field state => $c->param('state'); 
     % end
 </body>
 </html>
