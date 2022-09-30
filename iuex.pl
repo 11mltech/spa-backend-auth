@@ -2,6 +2,8 @@
 use Mojolicious::Lite -signatures;
 use Mojo::Util 'secure_compare';
 
+my @local_spas = ({name => 'DanTube', code => 1234}, {name => 'PabloSpa', code => 0});
+
 get '/spa-auth/login' => sub ($c) {
 
   # Check for username "Pepe" and password "jose"
@@ -55,10 +57,7 @@ __DATA__
     <h1> Formulario de autenticacion</h1>
     <p> Tu IP es: <%= $c->stash('remote_ip') // 'unknown' %> <p>
     %= form_for $c->url_for('uauth')->to_abs => (method => 'POST') => begin
-        <label for="username">Usuario</label>
-        <input type="text" name="username" id="username">
-        <label for="password">Contraseña</label>
-        <input type="password" name="password" id="password">
+        %= select_field country => [c(EU => [[Germany => 'de'], 'en'], id => 'eu')]
         <input type="submit" value="Enviar">
         %= hidden_field client_id => $c->param('client_id');
         %= hidden_field redirect_uri => $c->param('redirect_uri');
