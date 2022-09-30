@@ -2,7 +2,10 @@
 use Mojolicious::Lite -signatures;
 use Mojo::Util 'secure_compare';
 
-my @local_spas = ({name => 'DanTube', code => 1234}, {name => 'PabloSpa', code => 0});
+my @local_spas = (
+  {name => 'DanTube', code => 1234, mac => '112233445566'}, 
+  {name => 'PabloSpa', code => 0, mac => 'aabbccdd0011'}
+  );
 
 get '/spa-auth/login' => sub ($c) {
 
@@ -10,6 +13,11 @@ get '/spa-auth/login' => sub ($c) {
   $c->log->debug("req: " . $c->dumper($c->req));
   $c->log->debug("headers: " . $c->dumper($c->req->headers->to_hash));
   $c->stash(remote_ip => $c->tx->remote_address);
+  my $select_field = [];
+  for my $ls (@local_spas) {
+    push @$select_field, [$ls->{name}, $ls->{mac}]
+  };
+  $c->stash(select_field => $select_field);
   return $c->render(template => 'index')
    if secure_compare $c->req->url->to_abs->userinfo // '', 'alexa-id:alexa-secret'; 
   # Require authentication
@@ -57,13 +65,14 @@ __DATA__
     <h1> Formulario de autenticacion</h1>
     <p> Tu IP es: <%= $c->stash('remote_ip') // 'unknown' %> <p>
     %= form_for $c->url_for('uauth')->to_abs => (method => 'POST') => begin
-        %= select_field country => [c(EU => [[Germany => 'de'], 'en'], id => 'eu')]
+        %= select_field spa_name => stash 'select_field'
         <input type="submit" value="Enviar">
         %= hidden_field client_id => $c->param('client_id');
         %= hidden_field redirect_uri => $c->param('redirect_uri');
         %= hidden_field response_type => $c->param('response_type');
         %= hidden_field scope => $c->param('scope');
         %= hidden_field state => $c->param('state'); 
+        %= csrf_field
 	%= hidden_field ip => $c->tx->remote_address;
     % end
 </body>
