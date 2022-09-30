@@ -105,7 +105,7 @@ __DATA__
     <p> Tu IP es: <%= $c->stash('remote_ip') // 'unknown' %> <p>
     %= form_for $c->url_for('paste-spa-sharelink')->to_abs => (method => 'POST') => begin
         %= label_for spa_link => "Please paste a shared link here:"
-        %= text_area 'spa_link'
+        %= text_area 'spa_link', id => 'spa-link'
         <input type="submit" value="Enviar">
         %= hidden_field client_id => $c->param('client_id');
         %= hidden_field redirect_uri => $c->param('redirect_uri');
@@ -114,6 +114,11 @@ __DATA__
         %= hidden_field state => $c->param('state'); 
         %= csrf_field
 	%= hidden_field ip => $c->tx->remote_address;
+    % end
+    %= javascript begin
+      window.addEventListener('load', function () {
+        document.getElementById("spa-link").innerHTML = "La ventana está cargada";
+      });
     % end
 </body>
 </html>
