@@ -91,7 +91,7 @@ __DATA__
 </body>
 </html>
 
-@@ paste_sharelink.html.ep
+@@ paste-sharelink.html.ep
 <!DOCTYPE html>
 <html lang="en">
 <head>
