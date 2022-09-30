@@ -5,9 +5,11 @@ use Mojo::Util 'secure_compare';
 get '/spa-auth/login' => sub ($c) {
 
   # Check for username "Pepe" and password "jose"
-  # $c->log->debug("params: " . $c->dumper($c->req->params));
+  $c->log->debug("req: " . $c->dumper($c->req));
+  $c->log->debug("headers: " . $c->dumper($c->req->headers->to_hash));
+  $c->stash(remote_ip => $c->tx->remote_address);
   return $c->render(template => 'index')
-   if secure_compare $c->req->url->to_abs->userinfo, 'alexa-id:alexa-secret'; 
+   if secure_compare $c->req->url->to_abs->userinfo // '', 'alexa-id:alexa-secret'; 
   # Require authentication
   $c->res->headers->www_authenticate('Basic');
   $c->render(text => 'Authentication required!', status => 401);
@@ -25,7 +27,7 @@ post '/spa-auth/user-auth' => sub ($c) {
 } => 'uauth';
 
 post '/spa-auth/token' => sub ($c) {
-  $c->log->debug("params for token: " . $c->dumper($c->req->params));
+  $c->log->debug("params for token: " . $c->dumper($c->req));
   if ($c->param('code') ne '12345678') {
     return $c->render(status => 404, text => 'Forbidden');
   }
@@ -51,6 +53,7 @@ __DATA__
     </head>
 <body>
     <h1> Formulario de autenticacion</h1>
+    <p> Tu IP es: <%= $c->stash('remote_ip') // 'unknown' %> <p>
     %= form_for $c->url_for('uauth')->to_abs => (method => 'POST') => begin
         <label for="username">Usuario</label>
         <input type="text" name="username" id="username">
@@ -62,6 +65,7 @@ __DATA__
         %= hidden_field response_type => $c->param('response_type');
         %= hidden_field scope => $c->param('scope');
         %= hidden_field state => $c->param('state'); 
+	%= hidden_field ip => $c->tx->remote_address;
     % end
 </body>
 </html>
